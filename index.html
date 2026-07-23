@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home & Away — 6 Week Program</title>
+<style>
+  :root{
+    --bg: #F7F7F8;
+    --card: #FFFFFF;
+    --card-2: #F1F1F3;
+    --border: #E3E3E7;
+    --text: #17171A;
+    --text-dim: #6B6B72;
+    --text-faint: #9A9AA3;
+    --accent: #CBFF4D;
+    --accent-text: #4C7A0F;
+    --accent-dim: #A9D96B;
+    --warn: #C0392B;
+    --warn-soft: #FBEAE8;
+    --ok: #2F9E5B;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family: var(--font);
+    color: var(--text);
+    background: var(--bg);
+    padding: 0 0 84px 0;
+    min-height: 100vh;
+  }
+  .app{ max-width: 720px; margin: 0 auto; padding: 16px 16px 0; }
+
+  /* TOP BAR */
+  .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; }
+  .topbar .kicker{ font-size: 11px; text-transform:uppercase; letter-spacing: 1.5px; color: var(--text-faint); font-weight: 600; }
+  .topbar h1{ font-size: 22px; margin: 2px 0 0; font-weight: 800; letter-spacing: -0.3px; }
+  .week-tag{ font-size: 12px; font-weight: 700; color: #0B0B0B; background: var(--accent); padding: 6px 10px; border-radius: 20px; }
+
+  /* PROFILE SEGMENTED CONTROL */
+  .segmented{ display:flex; background: var(--card); border-radius: 12px; padding: 4px; margin-bottom: 14px; gap: 4px; }
+  .segmented button{
+    flex:1; padding: 10px 8px; border-radius: 9px; border:none; cursor:pointer;
+    background: transparent; color: var(--text-dim); font-family: var(--font); font-weight: 700; font-size: 15px;
+  }
+  .segmented button .sub{ display:block; font-weight:500; font-size: 11px; margin-top:1px; opacity:0.8; }
+  .segmented button.active{ background: var(--accent); color: #0B0B0B; }
+
+  /* SAFETY */
+  .note-box{ font-size: 13px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; line-height:1.5; color: var(--text-dim); }
+  .note-box.accent{ border-color: var(--accent-dim); color: var(--text); }
+
+  /* BOTTOM NAV */
+  .bottom-nav{
+    position: fixed; left:0; right:0; bottom:0; z-index: 50;
+    background: var(--card); border-top: 1px solid var(--border);
+    display:flex; padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav button{
+    flex:1; background:none; border:none; color: var(--text-faint); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap: 3px; padding: 6px 2px;
+    font-family: var(--font); font-size: 10.5px; font-weight:700; letter-spacing:0.2px; text-transform:uppercase;
+  }
+  .bottom-nav .icon{ font-size: 19px; line-height:1; }
+  .bottom-nav button.active{ color: var(--accent-text); }
+
+  /* WEEK STRIP */
+  .week-strip{ display:flex; gap: 8px; margin-bottom: 12px; overflow-x:auto; padding-bottom: 2px; }
+  .week-pill{
+    flex: 0 0 auto; font-size: 12px; padding: 8px 12px; border-radius: 10px; cursor:pointer;
+    text-align:center; min-width: 56px; background: var(--card); border: 1px solid var(--border); color: var(--text-dim);
+  }
+  .week-pill .wk{ display:block; font-weight:800; font-size: 14px; color: var(--text); }
+  .week-pill .ph{ display:block; font-size: 9px; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+  .week-pill.active{ background: var(--accent); border-color: var(--accent); }
+  .week-pill.active .wk, .week-pill.active .ph{ color: #0B0B0B; }
+
+  .day-select{ display:flex; gap: 8px; margin-bottom: 14px; }
+  .day-select button{
+    flex:1; font-size: 13px; font-weight:700; padding: 10px 8px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card); color: var(--text-dim); cursor:pointer;
+  }
+  .day-select button.active{ background: var(--card-2); border-color: var(--accent-text); color: var(--accent-text); }
+  .day-time{ display:block; font-size: 10.5px; font-weight:500; opacity:0.75; margin-top:2px; }
+
+  /* SESSION HEADER + START BUTTON */
+  .session-card{ background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+  .session-top{ display:flex; justify-content:space-between; align-items:flex-start; gap: 10px; }
+  .session-top h2{ font-size: 20px; margin: 0 0 4px; font-weight: 800; letter-spacing:-0.2px; }
+  .session-meta{ font-size: 12px; color: var(--text-faint); font-weight:600; }
+  .loc-chip{ font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+  .loc-home{ background: #E6F6E2; color: #2F7D32; }
+  .loc-away{ background: #FDF1D9; color: #8A5B0F; }
+  .warmup-line{ font-size: 13px; color: var(--text-dim); margin: 6px 0 12px; }
+  .start-btn{
+    width:100%; background: var(--accent); color:#0B0B0B; border:none; border-radius: 12px;
+    padding: 14px; font-size: 15px; font-weight: 800; cursor:pointer; margin-top: 6px;
+    display:flex; align-items:center; justify-content:center; gap: 8px;
+  }
+  .timer-bar{
+    display:flex; align-items:center; justify-content:space-between; background: var(--card-2);
+    border-radius: 12px; padding: 12px 14px; margin-top: 6px;
+  }
+  .timer-bar .live{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; }
+  .dot{ width:8px; height:8px; border-radius:50%; background: var(--accent); animation: pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+  .finish-btn{ background: var(--accent); color:#0B0B0B; border:none; border-radius: 8px; padding: 8px 14px; font-weight:800; font-size: 12.5px; cursor:pointer; display:flex; align-items:center; gap:7px; }
+  .save-bottom-btn{ width:100%; justify-content:center; padding: 14px; font-size: 15px; border-radius: 12px; margin: 4px 0 16px; }
+  .finish-btn:disabled{ opacity:0.75; cursor:default; }
+  .spinner{ width:13px; height:13px; border-radius:50%; border: 2px solid rgba(11,11,11,0.25); border-top-color:#0B0B0B; display:inline-block; animation: spin 0.7s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .modal-overlay{ position:fixed; inset:0; background: rgba(15,15,17,0.55); display:flex; align-items:center; justify-content:center; padding: 24px; z-index: 100; }
+  .modal-card{ background: var(--card); border-radius: 20px; padding: 28px 24px; max-width: 340px; width:100%; text-align:center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+  .modal-emoji{ font-size: 36px; margin-bottom: 10px; }
+  .modal-title{ font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+  .modal-message{ font-size: 14px; color: var(--text-dim); line-height:1.5; margin-bottom: 20px; }
+  .modal-close{ background: var(--accent); color:#0B0B0B; border:none; border-radius: 10px; padding: 12px 20px; font-weight:800; font-size:14px; cursor:pointer; width:100%; }
+
+  /* EXERCISE CARD */
+  .ex-card{ background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .ex-card.done{ opacity: 0.6; }
+  .ex-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap: 10px; }
+  .ex-tag{ display:inline-block; font-size: 10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color: var(--accent-text); background: rgba(76,122,15,0.1); padding: 2px 8px; border-radius: 6px; margin-bottom: 5px; }
+  .ex-name{ font-size: 15px; font-weight: 700; }
+  .ex-card.done .ex-name{ text-decoration: line-through; }
+  .ex-play{ flex-shrink:0; width: 34px; height:34px; border-radius:50%; background: var(--card-2); border: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; color: var(--accent-text); text-decoration:none; font-size:13px; }
+  .ex-benefit{ font-size: 12.5px; color: var(--text-dim); line-height:1.45; margin-top: 4px; }
+  .prior-tag{ font-size: 11.5px; color: var(--accent-text); font-weight:600; margin-top: 8px; }
+  .rest-bar{ display:flex; align-items:center; justify-content:space-between; gap:8px; background: var(--card-2);
+    border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 13px; font-weight:600; }
+  .rest-count{ font-family: var(--font); font-variant-numeric: tabular-nums; color: var(--accent-text); font-weight:800; font-size:15px; }
+  .rest-skip{ background:none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 6px; padding: 5px 10px; font-size: 11.5px; font-weight:700; cursor:pointer; }
+  .ex-note{ font-size: 12.5px; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 8px 10px; margin: 8px 0 4px; line-height:1.4; }
+
+  .set-table{ margin-top: 10px; }
+  .set-row{ display:grid; grid-template-columns: 28px 1fr 1fr 32px; gap: 8px; align-items:center; padding: 5px 0; }
+  .set-row.no-kg{ grid-template-columns: 28px 1fr 32px; }
+  .set-row.set-header{ font-size: 10px; text-transform:uppercase; letter-spacing:0.5px; color: var(--text-faint); font-weight:700; padding-bottom: 4px; }
+  .set-num{ font-size: 12.5px; color: var(--text-dim); font-weight:700; text-align:center; }
+  .set-input{
+    width:100%; background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 8px 8px; font-size: 13.5px; font-family: var(--font); text-align:center;
+  }
+  .set-input::placeholder{ color: var(--text-faint); }
+  .set-check{ width:22px; height:22px; accent-color: var(--accent); justify-self:center; }
+
+  .simple-row{ display:flex; align-items:center; gap: 10px; margin-top: 8px; }
+  .simple-row input[type=text]{
+    flex:1; background: var(--card-2); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:8px 10px; font-size:13px; font-family: var(--font);
+  }
+  .simple-row input[type=checkbox]{ width:22px; height:22px; accent-color: var(--accent); flex-shrink:0; }
+
+  .ex-video{ display:inline-flex; align-items:center; gap:5px; margin-top: 8px; font-size: 12px; color: var(--accent-text); text-decoration:none; font-weight:600; }
+
+  .cooldown{ margin-top: 4px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--text-dim); }
+  .save-row{ display:flex; justify-content: space-between; align-items:center; margin-top: 6px; margin-bottom: 16px; }
+  .save-btn{ background: var(--card-2); color: var(--text); border: 1px solid var(--border); font-size: 13px;
+    padding: 10px 16px; border-radius: 10px; cursor:pointer; font-weight:700; }
+  .save-status{ font-size: 12px; color: var(--accent-text); font-weight:700; opacity:0; transition: opacity 0.3s; }
+  .save-status.show{ opacity:1; }
+
+  .bonus-card{ border: 1px dashed var(--border); background: transparent; }
+  .bonus-label{ font-size: 11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color: var(--text-faint); margin-bottom: 8px; }
+
+  /* BASELINE / STAT CARDS */
+  .board{ background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-radius: 16px; padding: 18px; margin-bottom: 14px; }
+  .board h3{ font-size: 17px; margin:0 0 2px; font-weight:800; }
+  .board .sub{ font-size: 12px; color: var(--text-faint); margin-bottom: 12px; }
+  .board-item{ border-bottom: 1px solid var(--border); padding: 4px 0 10px; }
+  .board-item:last-child{ border-bottom:none; padding-bottom:0; }
+  .board-row{ display:flex; justify-content:space-between; align-items:center; padding: 6px 0; gap: 10px; }
+  .board-row label{ font-size: 13px; flex: 1; color: var(--text-dim); }
+  .board-row input{ font-size: 15px; width: 84px; text-align:right; padding: 7px 8px; background: var(--card-2);
+    border: 1px solid var(--border); color: var(--accent-text); border-radius: 6px; font-family: var(--font); font-weight:700; }
+  .board-row .unit{ font-size: 11px; color: var(--text-faint); width: 36px; }
+  .ref-note{ font-size: 11.5px; color: var(--text-faint); line-height:1.4; padding: 0 2px; }
+
+  .compare-table{ width:100%; border-collapse: collapse; margin-top: 6px; }
+  .compare-table th, .compare-table td{ text-align:left; padding: 9px 4px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .compare-table th{ font-size: 10px; text-transform:uppercase; letter-spacing:0.5px; color: var(--text-faint); }
+  .compare-table td.num{ text-align:right; font-weight:700; }
+  .delta-up{ color: var(--ok); }
+  .delta-down{ color: var(--warn); }
+
+  .stat-strip{ display:flex; gap:10px; margin-bottom: 14px; }
+  .stat-box{ flex:1; background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-radius: 12px; padding: 14px 10px; text-align:center; }
+  .stat-box .n{ font-size: 26px; font-weight:800; color: var(--accent-text); }
+  .stat-box .l{ font-size: 9.5px; text-transform:uppercase; letter-spacing:0.5px; color: var(--text-faint); margin-top:2px; }
+  .progress-track{ height: 8px; background: var(--card-2); border-radius: 6px; overflow:hidden; margin: 8px 0 16px; }
+  .progress-fill{ height:100%; background: var(--accent); border-radius:6px; }
+
+  .footer-note{ font-size: 11px; color: var(--text-faint); text-align:center; margin-top: 18px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const STORE_PREFIX = "hwa2"; // Home & Away v2 (Fitbod-style)
+
+// Plain browser localStorage, wrapped to match the same {get,set,list} shape used elsewhere.
+// This makes the file fully standalone — works on any web host, no account or external API needed.
+// Falls back gracefully (in-memory only) if localStorage is unavailable (e.g. private browsing).
+const memoryFallback = {};
+const storage = {
+  async get(key){
+    try{
+      const val = localStorage.getItem(key);
+      if(val === null) return null;
+      return { key, value: val };
+    }catch(e){
+      return (key in memoryFallback) ? { key, value: memoryFallback[key] } : null;
+    }
+  },
+  async set(key, value){
+    try{
+      localStorage.setItem(key, value);
+    }catch(e){
+      memoryFallback[key] = value;
+    }
+    return { key, value };
+  },
+  async list(prefix){
+    const keys = [];
+    try{
+      for(let i=0; i<localStorage.length; i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith(prefix)) keys.push(k);
+      }
+    }catch(e){
+      Object.keys(memoryFallback).forEach(k=>{ if(k.startsWith(prefix)) keys.push(k); });
+    }
+    return { keys };
+  }
+};
+
+// ---------- DATA ----------
+const BASELINE_TESTS = [
+  {id:"weight", label:"Bodyweight", unit:"kg", ref:null},
+  {id:"rhr", label:"Resting heart rate (after 5 min seated)", unit:"bpm",
+    ref:"General reference: 60–100 bpm is normal for an adult; lower in that range usually tracks with better cardiovascular fitness. Some medications affect resting heart rate, so use this loosely."},
+  {id:"sit2stand", label:"30-second sit-to-stand (chair, no hands if possible)", unit:"reps",
+    refByProfile:{ mum:"Published norms for women aged 65–69: 11–16 reps is the average band (Rikli & Jones Senior Fitness Test). Below 11 is below average for this age group, above 16 is above average.",
+      dad:"Published norms for men aged 65–69: 12–18 reps is the average band (Rikli & Jones Senior Fitness Test). Below 12 is below average for this age group, above 18 is above average." }},
+  {id:"cardio5", label:"Distance in 5 min steady effort (bike/treadmill/elliptical, RPE 6/10)", unit:"km", ref:null},
+  {id:"plank", label:"Plank hold (knee plank ok for Mum)", unit:"sec", ref:null},
+  {id:"upperreps", label:"Push-ups in one set (wall/knee/standard — pick one and stay consistent)", unit:"reps", ref:null},
+];
+
+function ex(name, detail, note, opts){ return {name, detail, note: note||"", allowWeight: !!(opts && opts.allowWeight)}; }
+
+const PROGRAMS = {
+  mum: {
+    label: "Mum", sub: "Joint-friendly · low impact",
+    phases: {
+      foundation: {
+        label: "Foundation", weeks: [1,2], loc: "home",
+        days: {
+          A: { title:"Lower Body & Stability", warmup:"Bike, easy spin — 5 min", cooldown:"Gentle upper-body stretch only. No deep calf/Achilles stretching.",
+            exercises: [
+              ex("Seated Leg Extension (machine)","3 × 12 · light load","Pain-free range only — stop short of any pinch"),
+              ex("Glute Bridge (floor)","3 × 12"),
+              ex("Standing Hip Abduction (band, ankle height)","3 × 15 each side"),
+              ex("Standing Calf Isometric Hold","3 × 20 sec","Flat ground, mid-range — not on a step edge"),
+              ex("Dead Bug","3 × 8 each side"),
+            ]},
+          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min", cooldown:"Shoulder & chest stretch, easy pace",
+            exercises: [
+              ex("Chest Press (multi-machine)","3 × 12"),
+              ex("Seated Row (low pulley)","3 × 12"),
+              ex("Lat Pulldown (high pulley)","3 × 10 · light"),
+              ex("Seated DB Shoulder Press","3 × 10 · 2–4 kg"),
+              ex("Band Pull-Aparts","3 × 15"),
+              ex("Bird-Dog","3 × 8 each side"),
+            ]},
+          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Walk it out 2–3 min, easy breathing",
+            exercises: [
+              ex("Bike or Elliptical — steady state","15–20 min · conversational pace"),
+              ex("Circuit × 2 rounds:",""),
+              ex("— Sit-to-Stand from bench","× 10"),
+              ex("— Band Row","× 12"),
+              ex("— Standing Calf Isometric","× 20 sec"),
+              ex("— Standing March","× 10 per leg"),
+            ]},
+        }
+      },
+      travel: {
+        label: "Away", weeks:[3,4], loc: "hotel",
+        days: {
+          A: { title:"Lower Body & Stability (Hotel)", warmup:"Bike/elliptical if available — 5 min", cooldown:"Gentle stretch, no deep calf stretch",
+            exercises: [
+              ex("Chair Sit-to-Stand","3 × 10"),
+              ex("Glute Bridge (floor)","3 × 12"),
+              ex("Band Hip Abduction","3 × 15 each side","Pack the bands — this is why!"),
+              ex("Standing Calf Isometric Hold","3 × 20 sec"),
+              ex("Dead Bug","3 × 8 each side"),
+            ]},
+          B: { title:"Upper Body & Core (Hotel)", warmup:"Bike/elliptical — 5 min", cooldown:"Easy stretch",
+            exercises: [
+              ex("Band or DB Chest Press","3 × 12"),
+              ex("Band Row (anchor on door or sturdy point)","3 × 12"),
+              ex("Band Lat Pulldown (anchor high)","3 × 10"),
+              ex("DB or Band Shoulder Press","3 × 10 · light"),
+              ex("Band Pull-Aparts","3 × 15"),
+              ex("Bird-Dog","3 × 8 each side"),
+            ]},
+          C: { title:"Cardio & Circuit (Hotel)", warmup:"", cooldown:"Walk it out",
+            exercises: [
+              ex("Cardio machine — steady state","15–20 min"),
+              ex("Circuit × 2 rounds:",""),
+              ex("— Chair Sit-to-Stand","× 10"),
+              ex("— Band Row","× 12"),
+              ex("— Standing Calf Isometric","× 20 sec"),
+              ex("— Standing March","× 10 per leg"),
+            ]},
+        }
+      },
+      progression: {
+        label: "Progression", weeks:[5,6], loc:"home",
+        days: {
+          A: { title:"Lower Body & Stability", warmup:"Bike — 5 min", cooldown:"Gentle stretch only",
+            exercises: [
+              ex("Seated Leg Extension","3 × 15","Only add load if still pain-free"),
+              ex("Glute Bridge — add single-leg if comfortable","3 × 15","Optional: once single-leg feels solid, rest a light dumbbell (2–4kg) across your hips for extra load — bodyweight is completely fine too.", {allowWeight:true}),
+              ex("Standing Hip Abduction (band)","3 × 15 · slightly heavier band"),
+              ex("Standing Calf Isometric Hold","3 × 30 sec","Keep this one bodyweight for now — with the Achilles, progress by holding longer rather than adding load, unless a physio says otherwise."),
+              ex("Dead Bug","3 × 10 each side","Optional: hold a light dumbbell (1–2kg) in the extending arm for extra core challenge — bodyweight is just as effective if you'd rather keep it simple.", {allowWeight:true}),
+            ]},
+          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min", cooldown:"Stretch",
+            exercises: [
+              ex("Chest Press","3 × 12 · heavier"),
+              ex("Seated Row","3 × 12 · heavier"),
+              ex("Lat Pulldown","3 × 12"),
+              ex("Seated DB Shoulder Press","3 × 12 · 4–6 kg if comfortable"),
+              ex("Band Pull-Aparts","3 × 20"),
+              ex("Bird-Dog","3 × 10 each side"),
+            ]},
+          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Walk it out",
+            exercises: [
+              ex("Bike or Elliptical — steady state","20–25 min"),
+              ex("Circuit × 3 rounds:",""),
+              ex("— Sit-to-Stand from bench","× 10"),
+              ex("— Band Row","× 12"),
+              ex("— Standing Calf Isometric","× 30 sec"),
+              ex("— Standing March","× 10 per leg"),
+            ]},
+        }
+      }
+    }
+  },
+  dad: {
+    label: "Dad", sub: "New to the gym · same sessions as Mum",
+    phases: {
+      foundation: {
+        label: "Foundation", weeks:[1,2], loc:"home",
+        days: {
+          A: { title:"Lower Body & Stability", warmup:"Bike, easy spin — 5 min (do this together)", cooldown:"Quad & hip flexor stretch",
+            exercises: [
+              ex("Bodyweight Squat","3 × 8","Sit back like lowering into a chair, chest up, knees tracking over toes. Bodyweight only for weeks 1–2 — hold onto the bench if balance feels off."),
+              ex("Glute Bridge (floor)","3 × 12","Lie on your back, knees bent, squeeze your glutes to lift your hips into a straight line."),
+              ex("Standing Hip Abduction (band)","3 × 15 each side","Band around your ankles, stand tall, lift one leg out to the side without leaning."),
+              ex("Standing Calf Raise","3 × 15","Hold onto something for balance, rise onto your toes slowly, lower slowly."),
+              ex("Dead Bug","3 × 8 each side","Flat back on the floor, slowly extend the opposite arm and leg out."),
+            ],
+            bonus: { note:"Optional golf add-on — solo, ~5 min, once the main session feels comfortable", exercises:[
+              ex("Band Rotation Chop","2 × 10 each side","Anchor the band at chest height, rotate through the hips and torso, arms follow."),
+            ]}},
+          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min (together)", cooldown:"Chest & shoulder stretch",
+            exercises: [
+              ex("Chest Press (multi-machine)","3 × 12","Sit tall, push the handles forward until arms extend — don't lock the elbows out hard."),
+              ex("Seated Row (low pulley)","3 × 12","Sit tall, pull the handles to your ribs, squeeze the shoulder blades together."),
+              ex("Lat Pulldown (high pulley)","3 × 10","Light weight while you learn it — pull the bar to your collarbone, lead with your elbows."),
+              ex("Standing DB Shoulder Press","3 × 10","Start at 2–4 kg. Press straight up without arching your lower back."),
+              ex("Band Pull-Aparts","3 × 15","Hold the band at chest height, pull apart by squeezing your shoulder blades."),
+              ex("Bird-Dog","3 × 8 each side","On hands and knees, extend the opposite arm and leg, keep your hips level."),
+            ],
+            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
+              ex("DB Romanian Deadlift","2 × 8","Soft knees, hinge at the hips and push them back, keep your back flat, light dumbbells to start."),
+            ]}},
+          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Easy walk + stretch",
+            exercises: [
+              ex("Treadmill, Bike or Elliptical","15–20 min · steady, conversational pace","Pick whichever machine — do this side by side with Mum."),
+              ex("Circuit × 2 rounds:",""),
+              ex("— Sit-to-Stand from bench","× 10","Stand up fully each rep, sit back down with control."),
+              ex("— Band Row","× 12"),
+              ex("— Standing Calf Raise","× 15"),
+              ex("— Standing March","× 10 per leg"),
+            ],
+            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
+              ex("Kettlebell Swing","2 × 10","Hip hinge and snap the hips forward — it's a hip drive, not a squat. Arms just go along for the ride."),
+            ]}},
+        }
+      },
+      travel: {
+        label: "Away", weeks:[3,4], loc:"hotel",
+        days: {
+          A: { title:"Lower Body & Stability (Hotel)", warmup:"Bike/elliptical if available — 5 min (together)", cooldown:"Stretch",
+            exercises: [
+              ex("Chair Sit-to-Stand","3 × 10","Same cue as the squat — sit back, chest up."),
+              ex("Glute Bridge (floor)","3 × 12"),
+              ex("Band Hip Abduction","3 × 15 each side"),
+              ex("Standing Calf Raise","3 × 15"),
+              ex("Dead Bug","3 × 8 each side"),
+            ],
+            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
+              ex("Band Rotation Chop","2 × 10 each side"),
+            ]}},
+          B: { title:"Upper Body & Core (Hotel)", warmup:"Bike/elliptical — 5 min (together)", cooldown:"Stretch",
+            exercises: [
+              ex("Band or DB Chest Press","3 × 12"),
+              ex("Band Row (anchor on a door or sturdy point)","3 × 12"),
+              ex("Band Lat Pulldown (anchor high)","3 × 10"),
+              ex("DB or Band Shoulder Press","3 × 10 · light"),
+              ex("Band Pull-Aparts","3 × 15"),
+              ex("Bird-Dog","3 × 8 each side"),
+            ],
+            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
+              ex("DB Romanian Deadlift (if DBs available)","2 × 8"),
+            ]}},
+          C: { title:"Cardio & Circuit (Hotel)", warmup:"", cooldown:"Walk it out",
+            exercises: [
+              ex("Cardio machine — steady state","15–20 min"),
+              ex("Circuit × 2 rounds:",""),
+              ex("— Chair Sit-to-Stand","× 10"),
+              ex("— Band Row","× 12"),
+              ex("— Standing Calf Raise","× 15"),
+              ex("— Standing March","× 10 per leg"),
+            ]},
+        }
+      },
+      progression: {
+        label: "Progression", weeks:[5,6], loc:"home",
+        days: {
+          A: { title:"Lower Body & Stability", warmup:"Bike, easy spin — 5 min (together)", cooldown:"Quad & hip flexor stretch",
+            exercises: [
+              ex("Goblet Squat (kettlebell)","3 × 10","Ready to add load now that the pattern feels solid."),
+              ex("Glute Bridge — add single-leg if comfortable","3 × 15","Optional: once single-leg feels solid, rest a light dumbbell (2–4kg) across your hips for extra load — bodyweight is completely fine too.", {allowWeight:true}),
+              ex("Standing Hip Abduction (band)","3 × 15 · slightly heavier band"),
+              ex("Standing Calf Raise","3 × 20","Optional: hold a light dumbbell in each hand once bodyweight feels easy.", {allowWeight:true}),
+              ex("Dead Bug","3 × 10 each side","Optional: hold a light dumbbell (1–2kg) in the extending arm for extra core challenge — bodyweight is just as effective if you'd rather keep it simple.", {allowWeight:true}),
+            ],
+            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
+              ex("Band Rotation Chop","3 × 10 each side"),
+            ]}},
+          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min (together)", cooldown:"Chest & shoulder stretch",
+            exercises: [
+              ex("Chest Press","3 × 12 · heavier"),
+              ex("Seated Row","3 × 12 · heavier"),
+              ex("Lat Pulldown","3 × 12"),
+              ex("Standing DB Shoulder Press","3 × 12 · heavier if comfortable"),
+              ex("Band Pull-Aparts","3 × 20"),
+              ex("Bird-Dog","3 × 10 each side"),
+            ],
+            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
+              ex("DB Romanian Deadlift","3 × 10 · heavier"),
+              ex("Kettlebell Swing","2 × 12"),
+            ]}},
+          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Easy walk + stretch",
+            exercises: [
+              ex("Treadmill, Bike or Elliptical","20–25 min"),
+              ex("Circuit × 3 rounds:",""),
+              ex("— Sit-to-Stand from bench","× 10"),
+              ex("— Band Row","× 12"),
+              ex("— Standing Calf Raise","× 20"),
+              ex("— Standing March","× 10 per leg"),
+            ]},
+        }
+      }
+    }
+  }
+};
+
+function videoUrlFor(name){
+  const clean = name.replace(/^—\s*/,"").replace(/\(.*?\)/g,"").trim();
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(clean + " exercise proper form")}`;
+}
+function muscleTagFor(name){
+  const n = name.toLowerCase();
+  const rules = [
+    ["kettlebell swing","Legs"],["romanian deadlift","Back"],["rotation chop","Core"],
+    ["sit-to-stand","Legs"],["squat","Legs"],["glute bridge","Legs"],["hip abduction","Legs"],
+    ["calf","Legs"],["dead bug","Core"],["bird-dog","Core"],["march","Legs"],
+    ["leg extension","Legs"],["chest press","Chest"],["row","Back"],["lat pulldown","Back"],
+    ["shoulder press","Shoulders"],["pull-apart","Shoulders"],
+    ["bike","Cardio"],["elliptical","Cardio"],["treadmill","Cardio"],["cardio machine","Cardio"],
+  ];
+  for(const [s,tag] of rules) if(n.includes(s)) return tag;
+  return "Full Body";
+}
+function benefitFor(name){
+  const n = name.toLowerCase();
+  const rules = [
+    ["kettlebell swing","Builds explosive hip power — a big contributor to swing speed and distance off the tee."],
+    ["romanian deadlift","Strengthens the hamstrings and glutes through a hip hinge — builds the power behind a golf drive."],
+    ["rotation chop","Trains rotational core strength that carries straight over to generating power in a golf swing."],
+    ["sit-to-stand","Builds the everyday strength to stand up, climb stairs, and get out of a chair without using your hands."],
+    ["squat","Builds the everyday strength to stand up, climb stairs, and get out of a chair without using your hands."],
+    ["glute bridge","Strengthens the glutes and lower back, taking load off the knees."],
+    ["hip abduction","Strengthens the hip stabilisers that keep you steady on uneven ground and lower fall risk."],
+    ["calf isometric","Builds calf strength and ankle control to support balance and everyday walking."],
+    ["calf raise","Builds calf strength and ankle control to support balance and everyday walking."],
+    ["dead bug","Trains the deep core to keep the spine stable, protecting the lower back in daily movement."],
+    ["bird-dog","Builds core and back stability while training balance and coordination."],
+    ["march","Improves hip mobility, balance and coordination for everyday walking."],
+    ["leg extension","Strengthens the muscles around the knee to support stability without deep bending."],
+    ["chest press","Builds pushing strength through the chest, shoulders and triceps for everyday tasks."],
+    ["row","Strengthens the back and improves posture, countering the forward hunch from sitting."],
+    ["lat pulldown","Builds pulling strength through the back and shoulders, supporting posture and everyday lifting."],
+    ["shoulder press","Builds shoulder strength and stability for lifting things overhead safely."],
+    ["pull-apart","Strengthens the upper back and rear shoulders — helps posture and shoulder health."],
+    ["bike","Builds aerobic fitness and heart health, and supports steady energy through the day."],
+    ["elliptical","Builds aerobic fitness and heart health, and supports steady energy through the day."],
+    ["treadmill","Builds aerobic fitness and heart health, and supports steady energy through the day."],
+    ["cardio machine","Builds aerobic fitness and heart health, and supports steady energy through the day."],
+  ];
+  for(const [s,text] of rules) if(n.includes(s)) return text;
+  return "Works several muscle groups together, building functional, everyday strength.";
+}
+function isBodyweightMove(name){
+  const n = name.toLowerCase();
+  const bw = ["bodyweight squat","glute bridge","dead bug","bird-dog","march","sit-to-stand",
+    "calf raise","calf isometric","hip abduction","rotation chop","pull-apart"];
+  return bw.some(p=>n.includes(p));
+}
+function isHeaderEx(exo){ return exo.detail === "" && exo.name.endsWith(":"); }
+function parseSets(detail){
+  if(!detail.includes("×")) return null; // steady-state / descriptive entry
+  let m = detail.match(/^(\d+)\s*×\s*(.+)$/);
+  if(m) return {count: parseInt(m[1],10), target: m[2].trim()};
+  m = detail.match(/^×\s*(.+)$/);
+  if(m) return {count: 1, target: m[1].trim()};
+  return {count: 1, target: detail.trim()};
+}
+function parseMinutesFromText(text){
+  const m = text.match(/(\d+)(?:[–-](\d+))?\s*min/i);
+  if(!m) return null;
+  const a = parseInt(m[1],10);
+  const b = m[2] ? parseInt(m[2],10) : a;
+  return (a+b)/2;
+}
+function estimateSessionMinutes(day){
+  let total = 0;
+  if(day.warmup){
+    const wm = parseMinutesFromText(day.warmup);
+    total += wm !== null ? wm : 5;
+  }
+  let roundMultiplier = 1;
+  day.exercises.forEach(exo=>{
+    if(isHeaderEx(exo)){
+      const m = exo.name.match(/×\s*(\d+)\s*rounds/i);
+      if(m) roundMultiplier = parseInt(m[1],10);
+      return;
+    }
+    const info = parseSets(exo.detail);
+    if(info){
+      total += info.count * roundMultiplier * 1.5; // ~90 sec per set, work + rest
+    } else {
+      const m = parseMinutesFromText(exo.detail);
+      total += m !== null ? m : 5;
+    }
+  });
+  if(day.cooldown) total += 3;
+  return Math.max(10, Math.round(total/5)*5); // round to nearest 5, floor at 10
+}
+
+// ---------- STATE ----------
+let state = {
+  profile: "mum",
+  tab: "workout",
+  week: 1,
+  day: "A",
+  sets: {},      // key profile:week:day -> {exIdx: [{w,r,done}]}
+  simple: {},    // key profile:week:day -> {exIdx: {val, done}}  (steady-state cardio rows)
+  completed: {}, // key profile:week:day -> true (set whenever a session is saved)
+  baseline: {},
+  retest: {},
+  goal: {},      // key profile -> {testId: value}
+  startTime: null,
+  timerInterval: null,
+  showModal: false,
+  modalMessage: "",
+  restTimer: null,
+  restInterval: null,
+};
+
+const INSPIRATIONAL_MESSAGES = [
+  "Session done. That's one more brick in the wall — six weeks from now this is just what you do.",
+  "Nice work. Strength you build now is strength you get to keep for years.",
+  "Logged. Consistency beats intensity — showing up today is the whole game.",
+  "Done and dusted. Future you is going to thank you for this one.",
+  "Great session. Small, steady sessions like this are exactly how real change happens.",
+  "That's in the books. Every session banked is proof this is a habit, not a one-off.",
+  "Well done — you showed up, and that's the hardest part of any program.",
+  "Session saved. Progress isn't always visible day to day, but it's adding up.",
+];
+
+function weekToPhase(profile, week){
+  const phases = PROGRAMS[profile].phases;
+  for(const key in phases){ if(phases[key].weeks.includes(week)) return key; }
+  return "foundation";
+}
+function getDay(){
+  const phaseKey = weekToPhase(state.profile, state.week);
+  const phase = PROGRAMS[state.profile].phases[phaseKey];
+  return {phaseKey, phase, day: phase.days[state.day]};
+}
+function logKeyNow(){ return `${state.profile}:${state.week}:${state.day}`; }
+
+async function loadAll(){
+  try{
+    const keys = await storage.list(STORE_PREFIX+":");
+    if(keys && keys.keys){
+      for(const k of keys.keys){
+        try{
+          const r = await storage.get(k);
+          if(!r) continue;
+          const val = JSON.parse(r.value);
+          const parts = k.split(":");
+          const type = parts[1];
+          if(type === "sets" || type === "simple"){
+            const bucket = type === "sets" ? state.sets : state.simple;
+            bucket[parts.slice(2).join(":")] = val;
+          } else if(type === "completed"){
+            state.completed[parts.slice(2).join(":")] = val;
+          } else if(type === "baseline" || type === "retest" || type === "goal"){
+            const bucket = type === "baseline" ? state.baseline : (type === "retest" ? state.retest : state.goal);
+            bucket[parts[2]] = val;
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){ console.log("no existing data yet", e); }
+  render();
+}
+
+async function saveLog(){
+  const lk = logKeyNow();
+  state.completed[lk] = true;
+  await storage.set(`${STORE_PREFIX}:sets:${lk}`, JSON.stringify(state.sets[lk] || {}));
+  await storage.set(`${STORE_PREFIX}:simple:${lk}`, JSON.stringify(state.simple[lk] || {}));
+  await storage.set(`${STORE_PREFIX}:completed:${lk}`, JSON.stringify(true));
+}
+async function saveBaseline(kind){
+  const bucket = state[kind];
+  try{
+    await storage.set(`${STORE_PREFIX}:${kind}:${state.profile}`, JSON.stringify(bucket[state.profile] || {}));
+    flashSave();
+  }catch(e){ console.error("save failed", e); }
+}
+function flashSave(){
+  const el = document.getElementById("save-status");
+  if(!el) return;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 1600);
+}
+
+function normName(name){
+  return name.replace(/^—\s*/,"").split(/[\(\u2014]/)[0].trim().toLowerCase();
+}
+function chronoOrder(){
+  const list = [];
+  for(let w=1; w<=6; w++){ for(const d of ["A","B","C"]) list.push({w,d}); }
+  return list;
+}
+function findPriorSets(profile, week, day, targetName){
+  const order = chronoOrder();
+  const curIdx = order.findIndex(o=>o.w===week && o.d===day);
+  for(let i=curIdx-1; i>=0; i--){
+    const {w,d} = order[i];
+    const lk = `${profile}:${w}:${d}`;
+    if(!state.completed[lk]) continue;
+    const phaseKey = weekToPhase(profile, w);
+    const dayData = PROGRAMS[profile].phases[phaseKey].days[d];
+    if(!dayData) continue;
+    for(let j=0; j<dayData.exercises.length; j++){
+      const e = dayData.exercises[j];
+      if(isHeaderEx(e)) continue;
+      if(normName(e.name) === targetName){
+        const arr = (state.sets[lk]||{})[j];
+        if(arr && arr.some(s=>s.w!=="" || s.r!=="")) return arr;
+      }
+    }
+  }
+  return null;
+}
+
+function ensureSetsArr(idx, count, priorArr){
+  const lk = logKeyNow();
+  if(!state.sets[lk]) state.sets[lk] = {};
+  if(!state.sets[lk][idx] || !Array.isArray(state.sets[lk][idx]) || state.sets[lk][idx].length !== count){
+    state.sets[lk][idx] = Array.from({length: count}, (_,i)=>{
+      const p = priorArr && priorArr[i];
+      return { w: p ? p.w : "", r: p ? p.r : "", done:false };
+    });
+  }
+  return state.sets[lk][idx];
+}
+function setSetVal(idx, si, field, value){
+  const lk = logKeyNow();
+  state.sets[lk][idx][si][field] = value;
+}
+function toggleSet(idx, si){
+  const lk = logKeyNow();
+  const wasDone = state.sets[lk][idx][si].done;
+  state.sets[lk][idx][si].done = !wasDone;
+  if(!wasDone && si < state.sets[lk][idx].length - 1){
+    startRest(idx);
+  }
+}
+function ensureSimple(idx){
+  const lk = logKeyNow();
+  if(!state.simple[lk]) state.simple[lk] = {};
+  if(!state.simple[lk][idx]) state.simple[lk][idx] = {val:"", done:false};
+  return state.simple[lk][idx];
+}
+function setSimpleVal(idx, value){
+  const lk = logKeyNow();
+  state.simple[lk][idx].val = value;
+}
+function toggleSimple(idx){
+  const lk = logKeyNow();
+  state.simple[lk][idx].done = !state.simple[lk][idx].done;
+}
+function setBaselineVal(kind, testId, value){
+  if(!state[kind][state.profile]) state[kind][state.profile] = {};
+  state[kind][state.profile][testId] = value;
+}
+
+function countSessions(profile){
+  let count = 0;
+  for(const lk in state.completed){
+    if(lk.startsWith(profile+":") && state.completed[lk]) count++;
+  }
+  return count;
+}
+
+function startWorkout(){
+  state.startTime = Date.now();
+  if(state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(tickTimer, 1000);
+  render();
+}
+async function finishWorkout(){
+  const btns = document.querySelectorAll(".save-workout-btn");
+  btns.forEach(btn=>{
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span> Saving...`;
+  });
+  try{
+    await saveLog();
+  }catch(e){
+    console.error("save failed", e);
+  }
+  if(state.timerInterval) clearInterval(state.timerInterval);
+  state.timerInterval = null;
+  state.startTime = null;
+  state.modalMessage = INSPIRATIONAL_MESSAGES[Math.floor(Math.random()*INSPIRATIONAL_MESSAGES.length)];
+  state.showModal = true;
+  render();
+}
+function closeModal(){
+  state.showModal = false;
+  render();
+}
+function tickTimer(){
+  const el = document.getElementById("elapsed");
+  if(!el || !state.startTime) return;
+  const s = Math.floor((Date.now()-state.startTime)/1000);
+  const mm = String(Math.floor(s/60)).padStart(2,"0");
+  const ss = String(s%60).padStart(2,"0");
+  el.textContent = `${mm}:${ss}`;
+}
+
+const REST_SECONDS = 60;
+function startRest(idx){
+  clearRestTimer();
+  state.restTimer = { key: `${logKeyNow()}:${idx}`, endsAt: Date.now() + REST_SECONDS*1000 };
+  state.restInterval = setInterval(tickRest, 1000);
+}
+function tickRest(){
+  if(!state.restTimer) return;
+  const remain = Math.max(0, Math.ceil((state.restTimer.endsAt - Date.now())/1000));
+  const el = document.getElementById("rest-countdown");
+  if(el) el.textContent = `${remain}s`;
+  if(remain <= 0){
+    clearRestTimer();
+    render();
+  }
+}
+function skipRest(){
+  clearRestTimer();
+  render();
+}
+function clearRestTimer(){
+  if(state.restInterval) clearInterval(state.restInterval);
+  state.restInterval = null;
+  state.restTimer = null;
+}
+
+// ---------- RENDER ----------
+function render(){
+  const app = document.getElementById("app");
+  const {phase, day} = getDay();
+  const loc = phase.loc;
+  let html = "";
+
+  html += `
+    <div class="topbar">
+      <div>
+        <div class="kicker">Home &amp; Away</div>
+        <h1>${PROGRAMS[state.profile].label}'s Plan</h1>
+      </div>
+      <div class="week-tag">WK ${state.week}/6</div>
+    </div>`;
+
+  html += `<div class="segmented">`;
+  ["mum","dad"].forEach(p=>{
+    html += `<button class="${state.profile===p?'active':''}" onclick="setProfile('${p}')">${PROGRAMS[p].label}<span class="sub">${PROGRAMS[p].sub}</span></button>`;
+  });
+  html += `</div>`;
+
+  if(state.tab === "workout"){
+    html += `<div class="week-strip">`;
+    for(let w=1; w<=6; w++){
+      const ph = weekToPhase(state.profile, w);
+      const label = PROGRAMS[state.profile].phases[ph].label;
+      html += `<div class="week-pill ${state.week===w?'active':''}" onclick="setWeek(${w})">
+        <span class="wk">WK${w}</span><span class="ph">${label}</span>
+      </div>`;
+    }
+    html += `</div>`;
+
+    html += `<div class="day-select">
+      ${["A","B","C"].map(d=>{
+        const est = estimateSessionMinutes(phase.days[d]);
+        return `<button class="${state.day===d?'active':''}" onclick="setDay('${d}')">Day ${d}<span class="day-time">~${est} min</span></button>`;
+      }).join("")}
+    </div>`;
+
+    const lk = logKeyNow();
+    const sessionNum = ["A","B","C"].indexOf(state.day) + 1 + (state.week-1)*3;
+    const exCount = day.exercises.filter(e=>!isHeaderEx(e)).length;
+    const estMinutes = estimateSessionMinutes(day);
+
+    html += `<div class="session-card">
+      <div class="session-top">
+        <div>
+          <h2>${day.title}</h2>
+          <div class="session-meta">${exCount} exercises · ~${estMinutes} min</div>
+        </div>
+        <span class="loc-chip ${loc==='home'?'loc-home':'loc-away'}">${loc==='home'?'Home Gym':'Hotel Gym'}</span>
+      </div>
+      ${day.warmup ? `<div class="warmup-line">Warm-up: ${day.warmup}</div>` : ""}`;
+
+    if(state.startTime){
+      html += `<div class="timer-bar">
+        <div class="live"><span class="dot"></span><span id="elapsed">00:00</span></div>
+        <button class="finish-btn save-workout-btn" onclick="finishWorkout()">Save Workout</button>
+      </div>`;
+    } else {
+      html += `<button class="start-btn" onclick="startWorkout()">▶ Start Workout · Session ${sessionNum} of 18</button>`;
+    }
+    html += `</div>`;
+
+    day.exercises.forEach((exo, idx)=>{
+      if(isHeaderEx(exo)){
+        html += `<div class="note-box" style="margin:-2px 0 10px; padding:8px 12px; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">${exo.name}</div>`;
+        return;
+      }
+      const tag = muscleTagFor(exo.name);
+      const benefit = benefitFor(exo.name);
+      const info = parseSets(exo.detail);
+      if(info){
+        const noKg = !exo.allowWeight && isBodyweightMove(exo.name);
+        const normed = normName(exo.name);
+        const priorArr = findPriorSets(state.profile, state.week, state.day, normed);
+        const isFresh = !state.sets[lk] || !state.sets[lk][idx];
+        const setsArr = ensureSetsArr(idx, info.count, priorArr);
+        const usedPrior = isFresh && !!priorArr;
+        const allDone = setsArr.every(s=>s.done);
+        const restKey = `${lk}:${idx}`;
+        const showRest = state.restTimer && state.restTimer.key === restKey;
+        html += `<div class="ex-card ${allDone?'done':''}">
+          <div class="ex-card-head">
+            <div><span class="ex-tag">${tag}</span><div class="ex-name">${exo.name}</div></div>
+            <a class="ex-play" href="${videoUrlFor(exo.name)}" target="_blank" rel="noopener" title="Watch a demo">▶</a>
+          </div>
+          <div class="ex-benefit">${benefit}</div>
+          ${exo.note ? `<div class="ex-note">${exo.note}</div>` : ""}
+          ${usedPrior ? `<div class="prior-tag">↺ Filled in from last session — adjust as needed</div>` : ""}
+          <div class="set-table">
+            <div class="set-row set-header ${noKg?'no-kg':''}"><div>SET</div>${noKg?'':'<div>KG</div>'}<div>REPS</div><div>✓</div></div>
+            ${setsArr.map((s,si)=>`
+              <div class="set-row ${noKg?'no-kg':''}">
+                <div class="set-num">${si+1}</div>
+                ${noKg?'':`<input class="set-input" type="text" inputmode="decimal" placeholder="kg" value="${s.w}" oninput="setSetVal(${idx},${si},'w',this.value)">`}
+                <input class="set-input" type="text" inputmode="decimal" placeholder="${info.target.replace(/"/g,'&quot;')}" value="${s.r}" oninput="setSetVal(${idx},${si},'r',this.value)">
+                <input type="checkbox" class="set-check" ${s.done?'checked':''} onchange="toggleSet(${idx},${si}); render();">
+              </div>`).join("")}
+          </div>
+          ${showRest ? `<div class="rest-bar"><span>😮‍💨 Rest before the next set</span><span id="rest-countdown" class="rest-count">${REST_SECONDS}s</span><button class="rest-skip" onclick="skipRest()">Skip</button></div>` : ""}
+          <a class="ex-video" href="${videoUrlFor(exo.name)}" target="_blank" rel="noopener">▶ Watch a demo</a>
+        </div>`;
+      } else {
+        const simp = ensureSimple(idx);
+        html += `<div class="ex-card ${simp.done?'done':''}">
+          <div class="ex-card-head">
+            <div><span class="ex-tag">${tag}</span><div class="ex-name">${exo.name}</div></div>
+            <a class="ex-play" href="${videoUrlFor(exo.name)}" target="_blank" rel="noopener" title="Watch a demo">▶</a>
+          </div>
+          <div class="ex-benefit">${benefit}</div>
+          ${exo.note ? `<div class="ex-note">${exo.note}</div>` : ""}
+          <div class="simple-row">
+            <input type="text" placeholder="${exo.detail}" value="${simp.val}" oninput="setSimpleVal(${idx}, this.value)">
+            <input type="checkbox" ${simp.done?'checked':''} onchange="toggleSimple(${idx}); render();">
+          </div>
+        </div>`;
+      }
+    });
+
+    if(day.cooldown){
+      html += `<div class="note-box"><b>Cooldown:</b> ${day.cooldown}</div>`;
+    }
+
+    if(day.bonus){
+      html += `<div class="bonus-label">${day.bonus.note}</div>`;
+      day.bonus.exercises.forEach((exo)=>{
+        const tag = muscleTagFor(exo.name);
+        html += `<div class="ex-card bonus-card">
+          <div class="ex-card-head">
+            <div><span class="ex-tag">${tag}</span><div class="ex-name">${exo.name}</div></div>
+            <a class="ex-play" href="${videoUrlFor(exo.name)}" target="_blank" rel="noopener" title="Watch a demo">▶</a>
+          </div>
+          <div class="ex-benefit">${benefitFor(exo.name)}</div>
+          <div class="warmup-line" style="margin:6px 0 0;">${exo.detail}</div>
+          ${exo.note ? `<div class="ex-note">${exo.note}</div>` : ""}
+        </div>`;
+      });
+    }
+
+    if(loc === "hotel"){
+      html += `<div class="note-box">✈ Travel weeks — pack resistance bands, they cover most of the gaps a hotel gym leaves. Swap any move for its closest hotel-gym equivalent if the exact kit isn't there.</div>`;
+    }
+
+    html += `<button class="finish-btn save-workout-btn save-bottom-btn" onclick="finishWorkout()">Save Workout</button>`;
+  }
+
+  if(state.tab === "baseline"){ html += renderBaseline(); }
+  if(state.tab === "progress"){ html += renderProgress(); }
+
+  html += `<div class="footer-note">Not medical advice — check with a GP/physio before starting, especially around diabetes medication and joint history.<br>Data is saved automatically on this device.</div>`;
+
+  html += `<div class="bottom-nav">
+    <button class="${state.tab==='workout'?'active':''}" onclick="setTab('workout')"><span class="icon">🏋️</span>Workout</button>
+    <button class="${state.tab==='baseline'?'active':''}" onclick="setTab('baseline')"><span class="icon">📋</span>Check-in</button>
+    <button class="${state.tab==='progress'?'active':''}" onclick="setTab('progress')"><span class="icon">📈</span>Progress</button>
+  </div>`;
+
+  if(state.showModal){
+    html += `<div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal-card">
+        <div class="modal-emoji">💪</div>
+        <div class="modal-title">Session saved!</div>
+        <div class="modal-message">${state.modalMessage}</div>
+        <button class="modal-close" onclick="closeModal()">Nice</button>
+      </div>
+    </div>`;
+  }
+
+  app.innerHTML = html;
+  if(state.startTime) tickTimer();
+}
+
+function renderBaseline(){
+  const base = state.baseline[state.profile] || {};
+  const retest = state.retest[state.profile] || {};
+  const goal = state.goal[state.profile] || {};
+
+  const refFor = (t)=> t.refByProfile ? t.refByProfile[state.profile] : t.ref;
+
+  let html = `<div class="board">
+    <h3>Week 0 · Baseline</h3>
+    <div class="sub">${PROGRAMS[state.profile].label} — do these before Session 01</div>`;
+  BASELINE_TESTS.forEach(t=>{
+    const r = refFor(t);
+    html += `<div class="board-item">
+      <div class="board-row">
+        <label>${t.label}</label>
+        <input type="number" step="0.1" value="${base[t.id] !== undefined ? base[t.id] : ''}"
+          oninput="setBaselineVal('baseline','${t.id}', this.value)">
+        <span class="unit">${t.unit}</span>
+      </div>
+      ${r ? `<div class="ref-note">${r}</div>` : ""}
+    </div>`;
+  });
+  html += `<div class="save-row" style="margin-top:6px;">
+    <button class="save-btn" onclick="saveBaseline('baseline')">Save baseline</button>
+    <span class="save-status" id="save-status">✓ Saved</span>
+  </div></div>`;
+
+  html += `<div class="board">
+    <h3>Week 6 Goal <span style="font-weight:400; font-size:12px; color:var(--text-faint);">(optional)</span></h3>
+    <div class="sub">Set a target for each test — mostly your own call, with a couple of reference points where they genuinely exist</div>`;
+  BASELINE_TESTS.forEach(t=>{
+    html += `<div class="board-item">
+      <div class="board-row">
+        <label>${t.label}</label>
+        <input type="number" step="0.1" value="${goal[t.id] !== undefined ? goal[t.id] : ''}"
+          oninput="setBaselineVal('goal','${t.id}', this.value)">
+        <span class="unit">${t.unit}</span>
+      </div>
+    </div>`;
+  });
+  html += `<div class="save-row" style="margin-top:6px;">
+    <button class="save-btn" onclick="saveBaseline('goal')">Save goal</button>
+    <span class="save-status" id="save-status">✓ Saved</span>
+  </div></div>`;
+
+  html += `<div class="board">
+    <h3>Week 6 · Retest</h3>
+    <div class="sub">Same tests, same conditions — see what moved</div>`;
+  BASELINE_TESTS.forEach(t=>{
+    html += `<div class="board-item">
+      <div class="board-row">
+        <label>${t.label}</label>
+        <input type="number" step="0.1" value="${retest[t.id] !== undefined ? retest[t.id] : ''}"
+          oninput="setBaselineVal('retest','${t.id}', this.value)">
+        <span class="unit">${t.unit}</span>
+      </div>
+    </div>`;
+  });
+  html += `<div class="save-row" style="margin-top:6px;">
+    <button class="save-btn" onclick="saveBaseline('retest')">Save retest</button>
+    <span class="save-status" id="save-status">✓ Saved</span>
+  </div></div>`;
+
+  html += `<div class="note-box">Tips for a fair test: same time of day, same shoes, rest 5 min before resting heart rate, and don't push the sit-to-stand or push-ups to complete failure — stop when form breaks down.</div>`;
+  return html;
+}
+
+function renderProgress(){
+  const sessions = countSessions(state.profile);
+  const pct = Math.round(sessions/18*100);
+  const base = state.baseline[state.profile] || {};
+  const retest = state.retest[state.profile] || {};
+  const goal = state.goal[state.profile] || {};
+
+  let html = `<div class="stat-strip">
+    <div class="stat-box"><div class="n">${sessions}</div><div class="l">Sessions logged</div></div>
+    <div class="stat-box"><div class="n">18</div><div class="l">Total sessions</div></div>
+    <div class="stat-box"><div class="n">${pct}%</div><div class="l">Complete</div></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>`;
+
+  const hasBase = Object.keys(base).length > 0;
+  const hasRetest = Object.keys(retest).length > 0;
+  const hasGoal = Object.keys(goal).length > 0;
+
+  if(!hasBase){
+    html += `<div class="note-box">No baseline logged yet — head to Check-in and log Week 0 numbers before the first session.</div>`;
+  } else {
+    html += `<div class="board"><h3>Baseline vs Retest</h3><div class="sub">${PROGRAMS[state.profile].label}</div>
+    <table class="compare-table">
+      <tr><th>Test</th><th>Base</th>${hasGoal?'<th>Goal</th>':''}<th>Retest</th><th>Change</th></tr>`;
+    BASELINE_TESTS.forEach(t=>{
+      const b = base[t.id];
+      const r = retest[t.id];
+      const g = goal[t.id];
+      let deltaHtml = "—";
+      if(b !== undefined && r !== undefined && b !== "" && r !== ""){
+        const diff = (parseFloat(r) - parseFloat(b));
+        const goodDirection = t.id === "rhr" ? diff <= 0 : diff >= 0;
+        const sign = diff > 0 ? "+" : "";
+        const cls = t.id === "weight" ? "" : (goodDirection ? "delta-up" : "delta-down");
+        deltaHtml = `<span class="${cls}">${sign}${diff.toFixed(1)}</span>`;
+      }
+      let goalCell = "";
+      if(hasGoal){
+        if(g === undefined || g === ""){
+          goalCell = `<td class="num">—</td>`;
+        } else {
+          let hit = "";
+          if(r !== undefined && r !== ""){
+            const met = t.id === "rhr" ? parseFloat(r) <= parseFloat(g) : parseFloat(r) >= parseFloat(g);
+            hit = met ? ` <span class="delta-up">✓</span>` : ` <span class="delta-down">·</span>`;
+          }
+          goalCell = `<td class="num">${g}${hit}</td>`;
+        }
+      }
+      html += `<tr>
+        <td>${t.label.split("(")[0].trim()}</td>
+        <td class="num">${b !== undefined ? b : "—"}</td>
+        ${goalCell}
+        <td class="num">${r !== undefined ? r : "—"}</td>
+        <td class="num">${deltaHtml}</td>
+      </tr>`;
+    });
+    html += `</table></div>`;
+    if(!hasRetest){
+      html += `<div class="note-box">Retest is empty — fill it in during Week 6 to see the comparison.</div>`;
+    }
+    if(!hasGoal){
+      html += `<div class="note-box">No Week 6 goals set — head to Check-in if you'd like to set targets to aim for.</div>`;
+    }
+  }
+  return html;
+}
+
+// ---------- EVENT HANDLERS ----------
+function setProfile(p){ clearRestTimer(); state.profile = p; render(); }
+function setTab(t){ clearRestTimer(); state.tab = t; render(); }
+function setWeek(w){ clearRestTimer(); state.week = w; render(); }
+function setDay(d){ clearRestTimer(); state.day = d; render(); }
+
+window.setProfile = setProfile;
+window.setTab = setTab;
+window.setWeek = setWeek;
+window.setDay = setDay;
+window.setSetVal = setSetVal;
+window.toggleSet = toggleSet;
+window.skipRest = skipRest;
+window.setSimpleVal = setSimpleVal;
+window.toggleSimple = toggleSimple;
+window.setBaselineVal = setBaselineVal;
+window.saveLog = saveLog;
+window.saveBaseline = saveBaseline;
+window.startWorkout = startWorkout;
+window.finishWorkout = finishWorkout;
+window.closeModal = closeModal;
+window.render = render;
+
+loadAll();
+</script>
+</body>
+</html>
