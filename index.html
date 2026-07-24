@@ -82,6 +82,7 @@
     border: 1px solid var(--border); background: var(--card); color: var(--text-dim); cursor:pointer;
   }
   .day-select button.active{ background: var(--card-2); border-color: var(--accent-text); color: var(--accent-text); }
+  .day-select button.optional-day{ border-style: dashed; }
   .day-time{ display:block; font-size: 10.5px; font-weight:500; opacity:0.75; margin-top:2px; }
 
   /* SESSION HEADER + START BUTTON */
@@ -122,7 +123,11 @@
   .ex-card{ background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
   .ex-card.done{ opacity: 0.6; }
   .ex-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap: 10px; }
-  .ex-tag{ display:inline-block; font-size: 10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color: var(--accent-text); background: rgba(76,122,15,0.1); padding: 2px 8px; border-radius: 6px; margin-bottom: 5px; }
+  .ex-tag{ display:inline-block; font-size: 10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color: var(--accent-text); background: rgba(76,122,15,0.1); padding: 2px 8px; border-radius: 6px; margin-bottom: 5px; margin-right: 5px; }
+  .tier-badge{ display:inline-block; font-size: 10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; padding: 2px 8px; border-radius: 6px; margin-bottom: 5px; }
+  .tier-light{ color: #2F7D32; background: #E6F6E2; }
+  .tier-medium{ color: #8A5B0F; background: #FDF1D9; }
+  .tier-heavy{ color: #A8281E; background: #FBE2DF; }
   .ex-name{ font-size: 15px; font-weight: 700; }
   .ex-card.done .ex-name{ text-decoration: line-through; }
   .ex-play{ flex-shrink:0; width: 34px; height:34px; border-radius:50%; background: var(--card-2); border: 1px solid var(--border);
@@ -134,6 +139,8 @@
   .rest-count{ font-family: var(--font); font-variant-numeric: tabular-nums; color: var(--accent-text); font-weight:800; font-size:15px; }
   .rest-skip{ background:none; border: 1px solid var(--border); color: var(--text-dim); border-radius: 6px; padding: 5px 10px; font-size: 11.5px; font-weight:700; cursor:pointer; }
   .ex-note{ font-size: 12.5px; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 8px 10px; margin: 8px 0 4px; line-height:1.4; }
+  .ex-list{ margin: 8px 0 4px; padding-left: 18px; font-size: 12.5px; color: var(--text-dim); line-height:1.6; }
+  .ex-list li{ margin-bottom: 2px; }
 
   .set-table{ margin-top: 10px; }
   .set-row{ display:grid; grid-template-columns: 28px 1fr 1fr 32px; gap: 8px; align-items:center; padding: 5px 0; }
@@ -246,12 +253,32 @@ const BASELINE_TESTS = [
   {id:"sit2stand", label:"30-second sit-to-stand (chair, no hands if possible)", unit:"reps",
     refByProfile:{ mum:"Published norms for women aged 65–69: 11–16 reps is the average band (Rikli & Jones Senior Fitness Test). Below 11 is below average for this age group, above 16 is above average.",
       dad:"Published norms for men aged 65–69: 12–18 reps is the average band (Rikli & Jones Senior Fitness Test). Below 12 is below average for this age group, above 18 is above average." }},
-  {id:"cardio5", label:"Distance in 5 min steady effort (bike/treadmill/elliptical, RPE 6/10)", unit:"km", ref:null},
+  {id:"balance", label:"Single-leg balance, eyes open (hand near a wall for safety) — each leg", unit:"sec",
+    ref:"Published average for ages 60–69 is around 27 seconds (meta-analysis of 22 studies, ~3,500 participants). This declines with age regardless of fitness, so it's about tracking your own change, not hitting a strict target."},
+  {id:"cardio5", label:"Distance in 5 min steady effort on the bike (RPE 6/10)", unit:"km", ref:null},
   {id:"plank", label:"Plank hold (knee plank ok for Mum)", unit:"sec", ref:null},
   {id:"upperreps", label:"Push-ups in one set (wall/knee/standard — pick one and stay consistent)", unit:"reps", ref:null},
 ];
 
-function ex(name, detail, note, opts){ return {name, detail, note: note||"", allowWeight: !!(opts && opts.allowWeight)}; }
+function ex(name, detail, note, opts){ return {name, detail, note: note||"", allowWeight: !!(opts && opts.allowWeight), list: (opts && opts.list) || null}; }
+function WARMUP(){ return ex("Warm-Up: Bike, Elliptical or Treadmill","10 min","Easy, conversational pace — just get the blood moving before the main work."); }
+function HOTEL_WARMUP(){ return ex("Warm-Up: Bike/Elliptical (if available) or Brisk Walk","10 min","Easy, conversational pace — whatever cardio option the hotel gym has."); }
+function STRETCH(){
+  return ex("Easy Mobility Stretches","2 min","Nothing forced or bouncy — gentle range of motion only.", { list:[
+    "Neck rolls — 20–30 sec each direction",
+    "Shoulder circles — 20–30 sec forward, then back",
+    "Gentle torso twists — 20–30 sec",
+    "Hip circles — 20–30 sec each direction",
+    "Ankle circles — 20–30 sec each foot",
+  ]});
+}
+function CARDIO_DAY(){
+  return { title:"Optional Cardio", loc:"either", cooldown:"5 min easy pace to bring your heart rate down, then a gentle stretch.",
+    exercises: [
+      ex("Warm-Up: Easy Pace","5 min","Bike, elliptical, or a brisk walk — just ease into it."),
+      ex("Steady Cardio (Bike, Elliptical or Treadmill)","20 min","Comfortable, conversational pace — this is a bonus aerobic session, not a hard-effort day."),
+    ]};
+}
 
 const PROGRAMS = {
   mum: {
@@ -260,16 +287,18 @@ const PROGRAMS = {
       foundation: {
         label: "Foundation", weeks: [1,2], loc: "home",
         days: {
-          A: { title:"Lower Body & Stability", warmup:"Bike, easy spin — 5 min", cooldown:"Gentle upper-body stretch only. No deep calf/Achilles stretching.",
+          A: { title:"Lower Body & Stability", cooldown:"Gentle upper-body stretch only. No deep calf/Achilles stretching beyond what your physio has shown you.",
             exercises: [
+              WARMUP(), STRETCH(),
               ex("Seated Leg Extension (machine)","3 × 12 · light load","Pain-free range only — stop short of any pinch"),
               ex("Glute Bridge (floor)","3 × 12"),
               ex("Standing Hip Abduction (band, ankle height)","3 × 15 each side"),
-              ex("Standing Calf Isometric Hold","3 × 20 sec","Flat ground, mid-range — not on a step edge"),
+              ex("Single-Leg Calf Raise (off a step)","3 × 10–12 each leg","From your physio program — hold a rail or wall for balance, lower under control past the edge of the step."),
               ex("Dead Bug","3 × 8 each side"),
             ]},
-          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min", cooldown:"Shoulder & chest stretch, easy pace",
+          B: { title:"Upper Body & Core", cooldown:"Shoulder & chest stretch, easy pace",
             exercises: [
+              WARMUP(), STRETCH(),
               ex("Chest Press (multi-machine)","3 × 12"),
               ex("Seated Row (low pulley)","3 × 12"),
               ex("Lat Pulldown (high pulley)","3 × 10 · light"),
@@ -277,61 +306,65 @@ const PROGRAMS = {
               ex("Band Pull-Aparts","3 × 15"),
               ex("Bird-Dog","3 × 8 each side"),
             ]},
-          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Walk it out 2–3 min, easy breathing",
+          C: { title:"Full Body Strength", cooldown:"Easy stretch through the arms and legs.",
             exercises: [
-              ex("Bike or Elliptical — steady state","15–20 min · conversational pace"),
-              ex("Circuit × 2 rounds:",""),
-              ex("— Sit-to-Stand from bench","× 10"),
-              ex("— Band Row","× 12"),
-              ex("— Standing Calf Isometric","× 20 sec"),
-              ex("— Standing March","× 10 per leg"),
+              WARMUP(), STRETCH(),
+              ex("Standing March","3 × 10 each leg"),
+              ex("DB Row (hand supported on a bench or chair)","3 × 12","Hinge at the hips with a flat back, support your free hand on a bench or chair, pull the dumbbell up to your ribs and squeeze your shoulder blade back."),
+              ex("Bicep Curl (light dumbbell)","3 × 12"),
+              ex("Triceps Pulldown (high pulley)","3 × 12","Elbows tucked in at your sides, push the bar down until your arms are straight, control it back up."),
             ]},
+          D: CARDIO_DAY(),
         }
       },
       travel: {
         label: "Away", weeks:[3,4], loc: "hotel",
         days: {
-          A: { title:"Lower Body & Stability (Hotel)", warmup:"Bike/elliptical if available — 5 min", cooldown:"Gentle stretch, no deep calf stretch",
+          A: { title:"Lower Body & Stability (Hotel)", cooldown:"Gentle stretch, no deep calf stretch",
             exercises: [
+              HOTEL_WARMUP(), STRETCH(),
               ex("Chair Sit-to-Stand","3 × 10"),
               ex("Glute Bridge (floor)","3 × 12"),
               ex("Band Hip Abduction","3 × 15 each side","Pack the bands — this is why!"),
-              ex("Standing Calf Isometric Hold","3 × 20 sec"),
+              ex("Single-Leg Calf Raise (off any stair step)","3 × 10–12 each leg","Same physio exercise — any staircase step works fine while traveling."),
               ex("Dead Bug","3 × 8 each side"),
             ]},
-          B: { title:"Upper Body & Core (Hotel)", warmup:"Bike/elliptical — 5 min", cooldown:"Easy stretch",
+          B: { title:"Upper Body & Core (Hotel)", cooldown:"Easy stretch",
             exercises: [
-              ex("Band or DB Chest Press","3 × 12"),
-              ex("Band Row (anchor on door or sturdy point)","3 × 12"),
-              ex("Band Lat Pulldown (anchor high)","3 × 10"),
-              ex("DB or Band Shoulder Press","3 × 10 · light"),
+              HOTEL_WARMUP(), STRETCH(),
+              ex("Chest Press (machine if available, else DB)","3 × 12","Use the gym's chest press machine if there is one. Otherwise, press dumbbells up from lying on a bench, or the floor if there's no bench."),
+              ex("DB Bent-Over Row","3 × 12","Hinge at the hips with a flat back, row both dumbbells up to your ribs together."),
+              ex("Lat Pulldown (machine if available, else Band)","3 × 10","Use a lat pulldown or cable machine if the gym has one. Otherwise, loop a band over a high anchor and pull down to your chest."),
+              ex("Seated DB Shoulder Press","3 × 10 · light"),
               ex("Band Pull-Aparts","3 × 15"),
               ex("Bird-Dog","3 × 8 each side"),
             ]},
-          C: { title:"Cardio & Circuit (Hotel)", warmup:"", cooldown:"Walk it out",
+          C: { title:"Full Body Strength (Hotel)", cooldown:"Easy stretch through arms and legs.",
             exercises: [
-              ex("Cardio machine — steady state","15–20 min"),
-              ex("Circuit × 2 rounds:",""),
-              ex("— Chair Sit-to-Stand","× 10"),
-              ex("— Band Row","× 12"),
-              ex("— Standing Calf Isometric","× 20 sec"),
-              ex("— Standing March","× 10 per leg"),
+              HOTEL_WARMUP(), STRETCH(),
+              ex("Standing March","3 × 10 each leg"),
+              ex("DB Row (hand supported on a bench or chair)","3 × 12","Hinge at the hips with a flat back, pull the dumbbell up to your ribs and squeeze your shoulder blade back."),
+              ex("Bicep Curl (light dumbbell)","3 × 12"),
+              ex("Triceps Pulldown (pulley if available, else DB Overhead Extension)","3 × 12","Use a cable/pulley station if there is one. Otherwise, hold one dumbbell with both hands overhead, lower it behind your head with elbows in, then press back up."),
             ]},
+          D: CARDIO_DAY(),
         }
       },
       progression: {
         label: "Progression", weeks:[5,6], loc:"home",
         days: {
-          A: { title:"Lower Body & Stability", warmup:"Bike — 5 min", cooldown:"Gentle stretch only",
+          A: { title:"Lower Body & Stability", cooldown:"Gentle stretch only",
             exercises: [
+              WARMUP(), STRETCH(),
               ex("Seated Leg Extension","3 × 15","Only add load if still pain-free"),
               ex("Glute Bridge — add single-leg if comfortable","3 × 15","Optional: once single-leg feels solid, rest a light dumbbell (2–4kg) across your hips for extra load — bodyweight is completely fine too.", {allowWeight:true}),
               ex("Standing Hip Abduction (band)","3 × 15 · slightly heavier band"),
-              ex("Standing Calf Isometric Hold","3 × 30 sec","Keep this one bodyweight for now — with the Achilles, progress by holding longer rather than adding load, unless a physio says otherwise."),
+              ex("Single-Leg Calf Raise (off a step)","3 × 12–15 each leg","Progressing from your physio program — increase reps before adding any load, and check with your physio first if you want to load this one."),
               ex("Dead Bug","3 × 10 each side","Optional: hold a light dumbbell (1–2kg) in the extending arm for extra core challenge — bodyweight is just as effective if you'd rather keep it simple.", {allowWeight:true}),
             ]},
-          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min", cooldown:"Stretch",
+          B: { title:"Upper Body & Core", cooldown:"Stretch",
             exercises: [
+              WARMUP(), STRETCH(),
               ex("Chest Press","3 × 12 · heavier"),
               ex("Seated Row","3 × 12 · heavier"),
               ex("Lat Pulldown","3 × 12"),
@@ -339,135 +372,122 @@ const PROGRAMS = {
               ex("Band Pull-Aparts","3 × 20"),
               ex("Bird-Dog","3 × 10 each side"),
             ]},
-          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Walk it out",
+          C: { title:"Full Body Strength", cooldown:"Easy stretch.",
             exercises: [
-              ex("Bike or Elliptical — steady state","20–25 min"),
-              ex("Circuit × 3 rounds:",""),
-              ex("— Sit-to-Stand from bench","× 10"),
-              ex("— Band Row","× 12"),
-              ex("— Standing Calf Isometric","× 30 sec"),
-              ex("— Standing March","× 10 per leg"),
+              WARMUP(), STRETCH(),
+              ex("Standing March","3 × 12 each leg"),
+              ex("DB Row (hand supported on a bench or chair)","3 × 15","Hinge at the hips with a flat back, support your free hand on a bench or chair, pull the dumbbell up to your ribs and squeeze your shoulder blade back."),
+              ex("Bicep Curl","3 × 15 · heavier if comfortable"),
+              ex("Triceps Pulldown (high pulley)","3 × 15","Elbows tucked in at your sides, push the bar down until your arms are straight, control it back up."),
             ]},
+          D: CARDIO_DAY(),
         }
       }
     }
   },
   dad: {
-    label: "Dad", sub: "New to the gym · same sessions as Mum",
+    label: "Dad", sub: "Full body strength · same sessions as Mum",
     phases: {
       foundation: {
         label: "Foundation", weeks:[1,2], loc:"home",
         days: {
-          A: { title:"Lower Body & Stability", warmup:"Bike, easy spin — 5 min (do this together)", cooldown:"Quad & hip flexor stretch",
+          A: { title:"Lower Body & Stability", cooldown:"Quad & hip flexor stretch",
             exercises: [
-              ex("Bodyweight Squat","3 × 8","Sit back like lowering into a chair, chest up, knees tracking over toes. Bodyweight only for weeks 1–2 — hold onto the bench if balance feels off."),
-              ex("Glute Bridge (floor)","3 × 12","Lie on your back, knees bent, squeeze your glutes to lift your hips into a straight line."),
+              WARMUP(), STRETCH(),
+              ex("Goblet Squat (kettlebell)","3 × 10","Sit back and down, chest tall, knees tracking over toes — go as heavy as clean form allows."),
+              ex("Glute Bridge (floor)","3 × 12","Lie on your back, knees bent, squeeze your glutes to lift your hips into a straight line.", {allowWeight:true}),
               ex("Standing Hip Abduction (band)","3 × 15 each side","Band around your ankles, stand tall, lift one leg out to the side without leaning."),
-              ex("Standing Calf Raise","3 × 15","Hold onto something for balance, rise onto your toes slowly, lower slowly."),
-              ex("Dead Bug","3 × 8 each side","Flat back on the floor, slowly extend the opposite arm and leg out."),
-            ],
-            bonus: { note:"Optional golf add-on — solo, ~5 min, once the main session feels comfortable", exercises:[
-              ex("Band Rotation Chop","2 × 10 each side","Anchor the band at chest height, rotate through the hips and torso, arms follow."),
-            ]}},
-          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min (together)", cooldown:"Chest & shoulder stretch",
+              ex("Standing Calf Raise","3 × 15","Hold onto something for balance if needed, rise onto your toes, lower under control.", {allowWeight:true}),
+              ex("Dead Bug","3 × 10 each side","Flat back on the floor, slowly extend the opposite arm and leg out.", {allowWeight:true}),
+            ]},
+          B: { title:"Upper Body & Core", cooldown:"Chest & shoulder stretch",
             exercises: [
+              WARMUP(), STRETCH(),
               ex("Chest Press (multi-machine)","3 × 12","Sit tall, push the handles forward until arms extend — don't lock the elbows out hard."),
+              ex("Chest Flyes (multi-machine)","3 × 12","Wider arc than the press — targets the chest through a different angle. Keep a slight bend in the elbows the whole way."),
               ex("Seated Row (low pulley)","3 × 12","Sit tall, pull the handles to your ribs, squeeze the shoulder blades together."),
-              ex("Lat Pulldown (high pulley)","3 × 10","Light weight while you learn it — pull the bar to your collarbone, lead with your elbows."),
-              ex("Standing DB Shoulder Press","3 × 10","Start at 2–4 kg. Press straight up without arching your lower back."),
+              ex("Lat Pulldown (high pulley)","3 × 10","Pull the bar to your collarbone, lead with your elbows, control it back up."),
+              ex("Standing DB Shoulder Press","3 × 10","Press straight up without arching your lower back."),
               ex("Band Pull-Aparts","3 × 15","Hold the band at chest height, pull apart by squeezing your shoulder blades."),
               ex("Bird-Dog","3 × 8 each side","On hands and knees, extend the opposite arm and leg, keep your hips level."),
-            ],
-            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
-              ex("DB Romanian Deadlift","2 × 8","Soft knees, hinge at the hips and push them back, keep your back flat, light dumbbells to start."),
-            ]}},
-          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Easy walk + stretch",
+            ]},
+          C: { title:"Full Body Strength", cooldown:"Easy walk + stretch",
             exercises: [
-              ex("Treadmill, Bike or Elliptical","15–20 min · steady, conversational pace","Pick whichever machine — do this side by side with Mum."),
-              ex("Circuit × 2 rounds:",""),
-              ex("— Sit-to-Stand from bench","× 10","Stand up fully each rep, sit back down with control."),
-              ex("— Band Row","× 12"),
-              ex("— Standing Calf Raise","× 15"),
-              ex("— Standing March","× 10 per leg"),
-            ],
-            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
-              ex("Kettlebell Swing","2 × 10","Hip hinge and snap the hips forward — it's a hip drive, not a squat. Arms just go along for the ride."),
-            ]}},
+              WARMUP(), STRETCH(),
+              ex("Standing March","3 × 10 each leg"),
+              ex("DB Row (hand supported on a bench or chair)","3 × 12","Hinge at the hips with a flat back, support your free hand on a bench or chair, pull the dumbbell up to your ribs and squeeze your shoulder blade back."),
+              ex("Bicep Curl (dumbbell)","3 × 12"),
+              ex("Triceps Pulldown (high pulley)","3 × 12","Elbows tucked in at your sides, push the bar down until your arms are straight, control it back up."),
+            ]},
+          D: CARDIO_DAY(),
         }
       },
       travel: {
         label: "Away", weeks:[3,4], loc:"hotel",
         days: {
-          A: { title:"Lower Body & Stability (Hotel)", warmup:"Bike/elliptical if available — 5 min (together)", cooldown:"Stretch",
+          A: { title:"Lower Body & Stability (Hotel)", cooldown:"Stretch",
             exercises: [
-              ex("Chair Sit-to-Stand","3 × 10","Same cue as the squat — sit back, chest up."),
-              ex("Glute Bridge (floor)","3 × 12"),
+              HOTEL_WARMUP(), STRETCH(),
+              ex("Bodyweight or DB/Kettlebell Squat","3 × 12","Whatever load's available — bodyweight is completely fine if there's no equipment."),
+              ex("Glute Bridge (floor)","3 × 12",undefined,{allowWeight:true}),
               ex("Band Hip Abduction","3 × 15 each side"),
-              ex("Standing Calf Raise","3 × 15"),
-              ex("Dead Bug","3 × 8 each side"),
-            ],
-            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
-              ex("Band Rotation Chop","2 × 10 each side"),
-            ]}},
-          B: { title:"Upper Body & Core (Hotel)", warmup:"Bike/elliptical — 5 min (together)", cooldown:"Stretch",
+              ex("Standing Calf Raise","3 × 15",undefined,{allowWeight:true}),
+              ex("Dead Bug","3 × 10 each side",undefined,{allowWeight:true}),
+            ]},
+          B: { title:"Upper Body & Core (Hotel)", cooldown:"Stretch",
             exercises: [
-              ex("Band or DB Chest Press","3 × 12"),
-              ex("Band Row (anchor on a door or sturdy point)","3 × 12"),
-              ex("Band Lat Pulldown (anchor high)","3 × 10"),
-              ex("DB or Band Shoulder Press","3 × 10 · light"),
+              HOTEL_WARMUP(), STRETCH(),
+              ex("Chest Press (machine if available, else DB)","3 × 12","Use the gym's chest press machine if there is one. Otherwise, press dumbbells up from lying on a bench, or the floor if there's no bench."),
+              ex("DB Chest Fly","3 × 12","Lying on a bench or the floor, arms slightly bent, sweep the dumbbells out and up in a wide arc."),
+              ex("DB Bent-Over Row","3 × 12","Hinge at the hips with a flat back, row both dumbbells up to your ribs together."),
+              ex("Lat Pulldown (machine if available, else Band)","3 × 10","Use a lat pulldown or cable machine if the gym has one. Otherwise, loop a band over a high anchor and pull down to your chest."),
+              ex("Standing DB Shoulder Press","3 × 10 · light"),
               ex("Band Pull-Aparts","3 × 15"),
               ex("Bird-Dog","3 × 8 each side"),
-            ],
-            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
-              ex("DB Romanian Deadlift (if DBs available)","2 × 8"),
-            ]}},
-          C: { title:"Cardio & Circuit (Hotel)", warmup:"", cooldown:"Walk it out",
-            exercises: [
-              ex("Cardio machine — steady state","15–20 min"),
-              ex("Circuit × 2 rounds:",""),
-              ex("— Chair Sit-to-Stand","× 10"),
-              ex("— Band Row","× 12"),
-              ex("— Standing Calf Raise","× 15"),
-              ex("— Standing March","× 10 per leg"),
             ]},
+          C: { title:"Full Body Strength (Hotel)", cooldown:"Walk it out",
+            exercises: [
+              HOTEL_WARMUP(), STRETCH(),
+              ex("Standing March","3 × 10 each leg"),
+              ex("DB Row (hand supported on a bench or chair)","3 × 12","Hinge at the hips with a flat back, pull the dumbbell up to your ribs and squeeze your shoulder blade back."),
+              ex("Bicep Curl (dumbbell)","3 × 12"),
+              ex("Triceps Pulldown (pulley if available, else DB Overhead Extension)","3 × 12","Use a cable/pulley station if there is one. Otherwise, hold one dumbbell with both hands overhead, lower it behind your head with elbows in, then press back up."),
+            ]},
+          D: CARDIO_DAY(),
         }
       },
       progression: {
         label: "Progression", weeks:[5,6], loc:"home",
         days: {
-          A: { title:"Lower Body & Stability", warmup:"Bike, easy spin — 5 min (together)", cooldown:"Quad & hip flexor stretch",
+          A: { title:"Lower Body & Stability", cooldown:"Quad & hip flexor stretch",
             exercises: [
-              ex("Goblet Squat (kettlebell)","3 × 10","Ready to add load now that the pattern feels solid."),
-              ex("Glute Bridge — add single-leg if comfortable","3 × 15","Optional: once single-leg feels solid, rest a light dumbbell (2–4kg) across your hips for extra load — bodyweight is completely fine too.", {allowWeight:true}),
+              WARMUP(), STRETCH(),
+              ex("Goblet Squat (kettlebell)","3 × 12","Heavier load or added tempo now that the pattern's dialled in."),
+              ex("Glute Bridge — add single-leg if comfortable","3 × 15",undefined,{allowWeight:true}),
               ex("Standing Hip Abduction (band)","3 × 15 · slightly heavier band"),
-              ex("Standing Calf Raise","3 × 20","Optional: hold a light dumbbell in each hand once bodyweight feels easy.", {allowWeight:true}),
-              ex("Dead Bug","3 × 10 each side","Optional: hold a light dumbbell (1–2kg) in the extending arm for extra core challenge — bodyweight is just as effective if you'd rather keep it simple.", {allowWeight:true}),
-            ],
-            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
-              ex("Band Rotation Chop","3 × 10 each side"),
-            ]}},
-          B: { title:"Upper Body & Core", warmup:"Elliptical — 5 min (together)", cooldown:"Chest & shoulder stretch",
+              ex("Standing Calf Raise","3 × 20",undefined,{allowWeight:true}),
+              ex("Dead Bug","3 × 12 each side",undefined,{allowWeight:true}),
+            ]},
+          B: { title:"Upper Body & Core", cooldown:"Chest & shoulder stretch",
             exercises: [
+              WARMUP(), STRETCH(),
               ex("Chest Press","3 × 12 · heavier"),
+              ex("Chest Flyes","3 × 12 · heavier"),
               ex("Seated Row","3 × 12 · heavier"),
               ex("Lat Pulldown","3 × 12"),
               ex("Standing DB Shoulder Press","3 × 12 · heavier if comfortable"),
               ex("Band Pull-Aparts","3 × 20"),
               ex("Bird-Dog","3 × 10 each side"),
-            ],
-            bonus: { note:"Optional golf add-on — solo, ~5 min", exercises:[
-              ex("DB Romanian Deadlift","3 × 10 · heavier"),
-              ex("Kettlebell Swing","2 × 12"),
-            ]}},
-          C: { title:"Cardio & Circuit", warmup:"", cooldown:"Easy walk + stretch",
-            exercises: [
-              ex("Treadmill, Bike or Elliptical","20–25 min"),
-              ex("Circuit × 3 rounds:",""),
-              ex("— Sit-to-Stand from bench","× 10"),
-              ex("— Band Row","× 12"),
-              ex("— Standing Calf Raise","× 20"),
-              ex("— Standing March","× 10 per leg"),
             ]},
+          C: { title:"Full Body Strength", cooldown:"Stretch",
+            exercises: [
+              WARMUP(), STRETCH(),
+              ex("Standing March","3 × 12 each leg"),
+              ex("DB Row (hand supported on a bench or chair)","3 × 15","Hinge at the hips with a flat back, support your free hand on a bench or chair, pull the dumbbell up to your ribs and squeeze your shoulder blade back."),
+              ex("Bicep Curl","3 × 15 · heavier"),
+              ex("Triceps Pulldown (high pulley)","3 × 15","Elbows tucked in at your sides, push the bar down until your arms are straight, control it back up."),
+            ]},
+          D: CARDIO_DAY(),
         }
       }
     }
@@ -481,7 +501,9 @@ function videoUrlFor(name){
 function muscleTagFor(name){
   const n = name.toLowerCase();
   const rules = [
+    ["warm-up","Cardio"],["mobility stretch","Mobility"],["steady cardio","Cardio"],
     ["kettlebell swing","Legs"],["romanian deadlift","Back"],["rotation chop","Core"],
+    ["single-leg calf raise","Legs"],["chest fly","Chest"],["bicep curl","Arms"],["triceps","Arms"],
     ["sit-to-stand","Legs"],["squat","Legs"],["glute bridge","Legs"],["hip abduction","Legs"],
     ["calf","Legs"],["dead bug","Core"],["bird-dog","Core"],["march","Legs"],
     ["leg extension","Legs"],["chest press","Chest"],["row","Back"],["lat pulldown","Back"],
@@ -494,9 +516,16 @@ function muscleTagFor(name){
 function benefitFor(name){
   const n = name.toLowerCase();
   const rules = [
+    ["warm-up","Raises your heart rate and body temperature gradually, preparing your muscles and joints for the work ahead."],
+    ["mobility stretch","Loosens up the joints you're about to use and helps reduce stiffness, without the risks of a cold, aggressive stretch."],
+    ["steady cardio","Builds aerobic fitness and heart health, and supports steady energy through the day."],
     ["kettlebell swing","Builds explosive hip power — a big contributor to swing speed and distance off the tee."],
     ["romanian deadlift","Strengthens the hamstrings and glutes through a hip hinge — builds the power behind a golf drive."],
     ["rotation chop","Trains rotational core strength that carries straight over to generating power in a golf swing."],
+    ["single-leg calf raise","Directly supports your Achilles rehab — builds tendon strength and resilience through a full range of motion, as prescribed by your physio."],
+    ["chest fly","Isolates the chest through a wider arc than the press, building well-rounded chest strength and shoulder stability."],
+    ["bicep curl","Builds arm strength for everyday carrying and lifting, and balances out all the pressing work in this program."],
+    ["triceps","Strengthens the triceps to support every pressing movement and everyday pushing tasks."],
     ["sit-to-stand","Builds the everyday strength to stand up, climb stairs, and get out of a chair without using your hands."],
     ["squat","Builds the everyday strength to stand up, climb stairs, and get out of a chair without using your hands."],
     ["glute bridge","Strengthens the glutes and lower back, taking load off the knees."],
@@ -526,6 +555,40 @@ function isBodyweightMove(name){
     "calf raise","calf isometric","hip abduction","rotation chop","pull-apart"];
   return bw.some(p=>n.includes(p));
 }
+function intensityTierFor(phaseKey){
+  if(phaseKey === "foundation") return "light";
+  if(phaseKey === "travel") return "medium";
+  return "heavy"; // progression
+}
+function weightRangeFor(name, profile, tier){
+  const n = name.toLowerCase();
+  const tierIdx = tier === "light" ? 0 : tier === "medium" ? 1 : 2;
+  const machineTiers = profile === "dad" ? ["15–20kg","20–30kg","30–40kg"] : ["10–15kg","15–20kg","20–25kg"];
+
+  // Combined "machine if available, otherwise DB/band" naming — the machine is the preferred
+  // option, so suggest that scale first regardless of the fallback equipment mentioned.
+  if(n.includes("if available")) return machineTiers[tierIdx];
+
+  // Dumbbell-primary moves get their DB range first, even if a band alternative is mentioned.
+  const dbMoves = ["bicep curl","standing db shoulder press","seated db shoulder press","db row",
+    "db bent-over row","db chest press","db chest fly","db overhead triceps extension"];
+  if(dbMoves.some(p=>n.includes(p))){
+    const tiers = profile === "dad" ? ["2–4kg","5–7kg","8–10kg"] : ["1–2kg","3–4kg","5–6kg"];
+    return tiers[tierIdx];
+  }
+
+  if(n.includes("kettlebell") || n.includes("goblet squat")) return "6–8kg (kettlebell)"; // fixed single kettlebell, not a range
+  if(n.includes("band")) return null; // band tension isn't measured in kg — tier label only, no fabricated number
+
+  // Machine exercises: rough starting ranges for a typical home multi-gym weight stack —
+  // adjust these to match your actual machine's increments once you know them.
+  const machineMoves = ["chest press","chest fly","seated row","lat pulldown","leg extension"];
+  if(machineMoves.some(p=>n.includes(p))){
+    return machineTiers[tierIdx];
+  }
+
+  return null; // otherwise unknown equipment — tier label only, no fabricated number
+}
 function isHeaderEx(exo){ return exo.detail === "" && exo.name.endsWith(":"); }
 function parseSets(detail){
   if(!detail.includes("×")) return null; // steady-state / descriptive entry
@@ -544,10 +607,6 @@ function parseMinutesFromText(text){
 }
 function estimateSessionMinutes(day){
   let total = 0;
-  if(day.warmup){
-    const wm = parseMinutesFromText(day.warmup);
-    total += wm !== null ? wm : 5;
-  }
   let roundMultiplier = 1;
   day.exercises.forEach(exo=>{
     if(isHeaderEx(exo)){
@@ -733,7 +792,18 @@ function setBaselineVal(kind, testId, value){
 function countSessions(profile){
   let count = 0;
   for(const lk in state.completed){
-    if(lk.startsWith(profile+":") && state.completed[lk]) count++;
+    if(!lk.startsWith(profile+":") || !state.completed[lk]) continue;
+    if(lk.split(":")[2] === "D") continue; // optional cardio day doesn't count toward the 18
+    count++;
+  }
+  return count;
+}
+function countCardioSessions(profile){
+  let count = 0;
+  for(const lk in state.completed){
+    if(!lk.startsWith(profile+":") || !state.completed[lk]) continue;
+    if(lk.split(":")[2] !== "D") continue;
+    count++;
   }
   return count;
 }
@@ -804,7 +874,7 @@ function clearRestTimer(){
 // ---------- RENDER ----------
 function render(){
   const app = document.getElementById("app");
-  const {phase, day} = getDay();
+  const {phaseKey, phase, day} = getDay();
   const loc = phase.loc;
   let html = "";
 
@@ -835,14 +905,17 @@ function render(){
     html += `</div>`;
 
     html += `<div class="day-select">
-      ${["A","B","C"].map(d=>{
+      ${["A","B","C","D"].map(d=>{
         const est = estimateSessionMinutes(phase.days[d]);
-        return `<button class="${state.day===d?'active':''}" onclick="setDay('${d}')">Day ${d}<span class="day-time">~${est} min</span></button>`;
+        const label = d === "D" ? "Cardio" : `Day ${d}`;
+        const sub = d === "D" ? "optional" : `~${est} min`;
+        return `<button class="${state.day===d?'active':''} ${d==='D'?'optional-day':''}" onclick="setDay('${d}')">${label}<span class="day-time">${sub}</span></button>`;
       }).join("")}
     </div>`;
 
     const lk = logKeyNow();
-    const sessionNum = ["A","B","C"].indexOf(state.day) + 1 + (state.week-1)*3;
+    const isCardioDay = state.day === "D";
+    const sessionNum = isCardioDay ? null : (["A","B","C"].indexOf(state.day) + 1 + (state.week-1)*3);
     const exCount = day.exercises.filter(e=>!isHeaderEx(e)).length;
     const estMinutes = estimateSessionMinutes(day);
 
@@ -850,11 +923,10 @@ function render(){
       <div class="session-top">
         <div>
           <h2>${day.title}</h2>
-          <div class="session-meta">${exCount} exercises · ~${estMinutes} min</div>
+          <div class="session-meta">${exCount} exercises · ~${estMinutes} min${isCardioDay ? ' · optional' : ''}</div>
         </div>
         <span class="loc-chip ${loc==='home'?'loc-home':'loc-away'}">${loc==='home'?'Home Gym':'Hotel Gym'}</span>
-      </div>
-      ${day.warmup ? `<div class="warmup-line">Warm-up: ${day.warmup}</div>` : ""}`;
+      </div>`;
 
     if(state.startTime){
       html += `<div class="timer-bar">
@@ -862,7 +934,9 @@ function render(){
         <button class="finish-btn save-workout-btn" onclick="finishWorkout()">Save Workout</button>
       </div>`;
     } else {
-      html += `<button class="start-btn" onclick="startWorkout()">▶ Start Workout · Session ${sessionNum} of 18</button>`;
+      html += isCardioDay
+        ? `<button class="start-btn" onclick="startWorkout()">▶ Start Optional Cardio Session</button>`
+        : `<button class="start-btn" onclick="startWorkout()">▶ Start Workout · Session ${sessionNum} of 18</button>`;
     }
     html += `</div>`;
 
@@ -876,6 +950,8 @@ function render(){
       const info = parseSets(exo.detail);
       if(info){
         const noKg = !exo.allowWeight && isBodyweightMove(exo.name);
+        const tier = noKg ? null : intensityTierFor(phaseKey);
+        const range = tier ? weightRangeFor(exo.name, state.profile, tier) : null;
         const normed = normName(exo.name);
         const priorArr = findPriorSets(state.profile, state.week, state.day, normed);
         const isFresh = !state.sets[lk] || !state.sets[lk][idx];
@@ -886,11 +962,12 @@ function render(){
         const showRest = state.restTimer && state.restTimer.key === restKey;
         html += `<div class="ex-card ${allDone?'done':''}">
           <div class="ex-card-head">
-            <div><span class="ex-tag">${tag}</span><div class="ex-name">${exo.name}</div></div>
+            <div><span class="ex-tag">${tag}</span>${tier ? `<span class="tier-badge tier-${tier}">${tier}${range ? ' · '+range : ''}</span>` : ""}<div class="ex-name">${exo.name}</div></div>
             <a class="ex-play" href="${videoUrlFor(exo.name)}" target="_blank" rel="noopener" title="Watch a demo">▶</a>
           </div>
           <div class="ex-benefit">${benefit}</div>
           ${exo.note ? `<div class="ex-note">${exo.note}</div>` : ""}
+          ${exo.list ? `<ul class="ex-list">${exo.list.map(item=>`<li>${item}</li>`).join("")}</ul>` : ""}
           ${usedPrior ? `<div class="prior-tag">↺ Filled in from last session — adjust as needed</div>` : ""}
           <div class="set-table">
             <div class="set-row set-header ${noKg?'no-kg':''}"><div>SET</div>${noKg?'':'<div>KG</div>'}<div>REPS</div><div>✓</div></div>
@@ -914,6 +991,7 @@ function render(){
           </div>
           <div class="ex-benefit">${benefit}</div>
           ${exo.note ? `<div class="ex-note">${exo.note}</div>` : ""}
+          ${exo.list ? `<ul class="ex-list">${exo.list.map(item=>`<li>${item}</li>`).join("")}</ul>` : ""}
           <div class="simple-row">
             <input type="text" placeholder="${exo.detail}" value="${simp.val}" oninput="setSimpleVal(${idx}, this.value)">
             <input type="checkbox" ${simp.done?'checked':''} onchange="toggleSimple(${idx}); render();">
@@ -1044,6 +1122,7 @@ function renderBaseline(){
 
 function renderProgress(){
   const sessions = countSessions(state.profile);
+  const cardioSessions = countCardioSessions(state.profile);
   const pct = Math.round(sessions/18*100);
   const base = state.baseline[state.profile] || {};
   const retest = state.retest[state.profile] || {};
@@ -1055,6 +1134,9 @@ function renderProgress(){
     <div class="stat-box"><div class="n">${pct}%</div><div class="l">Complete</div></div>
   </div>
   <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>`;
+  if(cardioSessions > 0){
+    html += `<div class="note-box">🚴 ${cardioSessions} optional cardio session${cardioSessions===1?'':'s'} logged too — nice bonus work.</div>`;
+  }
 
   const hasBase = Object.keys(base).length > 0;
   const hasRetest = Object.keys(retest).length > 0;
